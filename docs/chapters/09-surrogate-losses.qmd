@@ -1,5 +1,158 @@
 ---
-title: "Surrogate Losses"
+title: "Surrogate Losses: From 0–1 Loss to Hinge and Logistic Loss"
 ---
 
-Placeholder.
+For a binary classifier, the metric that actually matters is often
+embarrassingly simple: was the predicted label right or wrong. Nothing in
+this book's story so far — Bernoulli likelihoods, cross-entropy, proper
+scoring rules — is *that* metric. This chapter explains why training almost
+never targets it directly, and what's used instead.
+
+## The problem
+
+Let $y\in\{-1,+1\}$ and $z=f_\theta(x)$ be a real-valued score, with the
+predicted label $\mathrm{sign}(z)$. Define the **margin**
+$m = y\cdot z$: positive when the prediction's sign agrees with $y$,
+negative when it doesn't, and larger in magnitude the more confidently
+correct (or wrong) the prediction is. **0–1 loss** is
+$\ell_{0\text{-}1}(m) = \mathbb{1}\{m<0\}$ — exactly the classification
+error rate, averaged over examples. It is also piecewise constant: its
+gradient is zero everywhere it's defined and undefined at $m=0$, which
+makes gradient-based optimization of $\hat R(\theta)$ built from it
+useless — a small change to $\theta$ almost never changes any example's
+sign, so almost every step has zero gradient, right up until a change is
+big enough to flip a sign, at which point the loss jumps discontinuously.
+Minimizing 0–1 loss directly is also, in the worst case, NP-hard for linear
+classifiers. Something else has to stand in for it during training.
+
+## Assumptions
+
+A **surrogate** loss $\varphi(m)$ is a substitute for 0–1 loss chosen so
+that (a) it upper-bounds 0–1 loss, $\varphi(m) \ge \mathbb{1}\{m<0\}$, so
+driving $\varphi$ down provably drives the true error rate down too, and
+(b) it is convex and has usable gradients almost everywhere, so ERM on
+$\varphi$ is actually tractable. Nothing here assumes a likelihood or a
+prior — this is a different kind of justification than Parts II–IV of this
+book, chosen for tractability with a provable relationship to the thing
+that's actually wanted.
+
+## Derivation
+
+### Hinge loss, from wanting a margin
+
+Correctness alone ($m>0$) is a weak requirement — a classifier can sit
+arbitrarily close to the decision boundary and still be "correct." Support
+vector machines [@cortes1995support] ask for more: a margin of at least 1,
+penalizing any shortfall linearly and charging nothing once the margin
+requirement is met:
+$$
+\varphi_{\mathrm{hinge}}(m) = \max(0,\, 1-m).
+$$
+This is $0$ once $m\ge 1$, and grows linearly as $m$ drops below $1$ —
+including for already-correct-but-unconfident predictions ($0<m<1$), which
+still get penalized. It upper-bounds 0–1 loss everywhere: at $m<0$,
+$\max(0,1-m) \ge 1 = \mathbb{1}\{m<0\}$; at $m\ge 0$, the bound is trivial
+since $\ell_{0\text{-}1}=0$.
+
+### Logistic loss is binary cross-entropy, rewritten
+
+Chapter 6 derived binary cross-entropy for $y\in\{0,1\}$ and
+$p=\sigma(z)$: $-y\log p - (1-y)\log(1-p)$. Rewrite it in the $\{-1,+1\}$
+margin convention. Using $\sigma(z) = 1/(1+e^{-z})$ and
+$1-\sigma(z)=\sigma(-z)$, the two cases $y=1$ and $y=-1$ (relabeling
+$y=0\to y=-1$) both collapse into one expression:
+$$
+-\log\sigma(yz) = \log\big(1+e^{-yz}\big) = \log\big(1+e^{-m}\big) =: \varphi_{\mathrm{logistic}}(m).
+$$
+This is not a new formula — it is Chapter 6's binary cross-entropy, in a
+different but equivalent notation, now visibly a function of the margin
+$m=yz$ alone rather than of $y$ and $p$ separately. It, too, upper-bounds
+0–1 loss (a short check confirms $\log(1+e^{-m}) \ge \mathbb{1}\{m<0\}$
+everywhere), and it's smooth: differentiable at every $m$, including $m=1$
+where hinge has a kink.
+
+## The resulting objective
+
+::: {.callout-note title="Definition — Hinge and logistic surrogates"}
+$$
+\varphi_{\mathrm{hinge}}(m) = \max(0,\,1-m), \qquad
+\varphi_{\mathrm{logistic}}(m) = \log(1+e^{-m}), \qquad m = y\cdot f_\theta(x).
+$$
+Both are convex, both upper-bound 0–1 loss $\mathbb{1}\{m<0\}$.
+:::
+
+::: {.callout-tip title="Origin: hinge is a surrogate/relaxation; logistic loss is a hybrid"}
+Hinge loss has one clean justification: it's a tractable, convex relaxation
+of 0–1 loss, designed for margin-maximization, with no probabilistic
+derivation as a likelihood of anything standard. Logistic loss is
+different — it has *two* correct derivations that happen to produce the
+identical formula: Chapter 6's likelihood argument (Bernoulli NLL) and this
+chapter's surrogate argument (a smooth, convex upper bound on 0–1 loss).
+Neither derivation is more "real" than the other; which one is relevant
+depends on whether you care about calibrated probabilities (the likelihood
+reading) or just a tractable stand-in for classification error (the
+surrogate reading).
+:::
+
+## Interpretation
+
+@fig-surrogate-losses puts 0–1 loss, hinge, and logistic loss on the same
+axes as functions of the margin. Both surrogates sit above the 0–1 step
+everywhere, confirming the upper-bound property visually; hinge is exactly
+linear beyond the kink at $m=1$ and exactly flat (zero) beyond it, while
+logistic loss decays smoothly and never reaches exactly zero for finite
+$m$ — a classifier trained on logistic loss keeps getting a (shrinking)
+gradient signal to push already-correct predictions to be even more
+confident, whereas one trained on hinge loss stops caring entirely once the
+margin requirement is met.
+
+![0–1 loss (the true target, piecewise constant) against two convex surrogates as functions of the margin $m$. Both hinge and logistic loss upper-bound 0–1 loss everywhere, which is what licenses training on the surrogate; they differ in smoothness (hinge has a kink at $m=1$; logistic is smooth everywhere) and in whether they keep rewarding confidence past the point of already being correct.](../images/surrogate_losses.png){#fig-surrogate-losses}
+
+## Behavior and edge cases
+
+Because both surrogates are convex upper bounds, driving either one's
+empirical average to a small value provably bounds the true 0–1 error rate
+from above — this is the entire practical justification for training on a
+surrogate at all. **Statistical consistency** makes this precise: Bartlett,
+Jordan, and McAuliffe [@bartlett2006convexity] and Zhang
+[@zhang2004statistical] show that a broad class of convex margin losses,
+hinge and logistic among them, are *classification-calibrated* — under
+mild conditions, minimizing the surrogate's population risk, given enough
+data and model capacity, recovers the Bayes-optimal 0–1 decision rule. Not
+every plausible surrogate has this property automatically; it has to be
+checked, and the papers above give the conditions.
+
+## Limitations
+
+A surrogate's output is not automatically a usable probability. Hinge
+loss's $z$ has no natural probabilistic scale at all — a margin of $5$
+isn't "5 times more confident" than a margin of $1$ in any calibrated
+sense. Platt scaling [@platt1999probabilistic] is the standard fix: fit a
+separate sigmoid on top of a trained margin classifier's raw scores,
+post-hoc, to recover calibrated probabilities — a practical bridge back to
+Chapter 8's proper-scoring-rule territory for a model that wasn't trained
+with a calibrated probability as its objective in the first place.
+
+## Optimization implications
+
+Hinge loss's kink at $m=1$ means it's not differentiable there, requiring
+subgradient methods (still convex, still tractable, just not
+plain-gradient-friendly at that one point); logistic loss is smooth
+everywhere, which is part of why it's the default in most neural
+classifiers even where an SVM-style margin objective would also be a valid
+choice. [Chapter 17](17-losses-and-optimization.qmd) compares gradient
+saturation between the two more directly, alongside the other losses
+introduced by that point.
+
+## Connections
+
+- [Chapter 6](06-bernoulli-categorical-cross-entropy.qmd) — the exact
+  algebraic identity between binary cross-entropy and logistic loss.
+- [Chapter 8](08-decision-theory-proper-scoring.qmd) — the consistency
+  framework this chapter specializes to the classification case, and where
+  the probabilistic-calibration idea Platt scaling restores comes from.
+- [Chapter 1](01-the-learning-problem.qmd) — 0–1 loss reappears here from
+  that opening figure, now as the actual target being approximated.
+- [Chapter 11](11-ranknet.qmd) — RankNet's pairwise loss is this exact
+  logistic surrogate, applied to a *difference* of two scores instead of a
+  single margin.

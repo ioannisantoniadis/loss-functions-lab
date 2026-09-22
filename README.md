@@ -1,5 +1,7 @@
 # loss-functions-lab
 
+![The book's spine and its main cross-links](docs/images/taxonomy_map.png)
+
 A small, focused Quarto book: where loss functions and ML objectives
 actually come from, derived from first principles rather than presented as
 a catalogue of formulas to memorize.

@@ -2,4 +2,189 @@
 title: "A Recipe for Designing a New Loss"
 ---
 
-Placeholder.
+Seventeen chapters have all been making one argument in different
+costumes: every loss in this book was *derivable*, not memorized. Squared
+error fell out of assuming Gaussian noise. Cross-entropy fell out of a
+categorical likelihood, and separately out of wanting an honest probability
+report. RankNet fell out of a Bradley–Terry model over pairs. DPO fell out
+of substituting a KL-regularized policy's implicit reward back into that
+same Bradley–Terry model. None of these needed to be looked up in a table.
+This chapter turns that pattern into a procedure you can run on a problem
+this book never covered, so that the actual goal — being able to reason
+from a new problem to an appropriate objective — is something you leave
+with, not just something you watched happen eighteen times.
+
+## The recipe
+
+Nine questions, asked in order. Most problems resolve after two or three of
+them; the rest exist for when they don't.
+
+**1. What exactly are you predicting or deciding?** Pin down the input,
+the target space $\mathcal{Y}$, and — critically — its *structure*. A
+scalar, an unordered category, an ordered category, a ranking, a full
+sequence, and a preference between two options are all different enough
+that the right objective family differs before any assumption is even
+made. Getting this step wrong (e.g. treating an ordered category as
+unordered) silently throws away information no later step recovers.
+
+**2. What makes a prediction good, here?** Not "how do I train a model" —
+what property does a good prediction actually have? Point accuracy?
+Calibrated uncertainty? Correct ranking? Robustness to a few bad labels?
+An asymmetric cost for one kind of mistake over another? [Chapter 1](01-the-learning-problem.qmd)'s
+opening claim — the loss *defines* what a good prediction means — is what
+makes this question first-class rather than an afterthought.
+
+**3. Is there a natural probabilistic model?** Ask specifically: can
+$\mathcal{Y}$'s structure be captured by a distribution whose likelihood
+rewards exactly the property named in step 2? If yes,
+[Chapter 2](02-probability-to-objective.qmd)'s machinery applies directly:
+write down $p(y\mid x;\theta)$, take the NLL, done — origin tag *derived
+from likelihood*. This one question resolved Chapters 4 through 7, 12, and
+15 almost entirely on its own.
+
+**4. If not, what decision-theoretic objective captures the desired
+behavior?** When no clean likelihood fits, [Chapter 8](08-decision-theory-proper-scoring.qmd)'s
+approach still applies: name the action space and a utility/loss directly,
+and ask what minimizing its conditional risk actually recovers. This is
+how [Chapter 16](16-preference-objectives.qmd)'s reward-maximization step
+and [Chapter 14](14-contrastive-objectives.qmd)'s embedding-geometry losses
+get justified when step 3 doesn't resolve cleanly.
+
+**5. Is the resulting objective tractable?** Name *specifically* what
+breaks, if anything: non-differentiable (0–1 loss), discontinuous
+(rank-position metrics, [Chapter 10](10-ranking-foundations.qmd)),
+combinatorial ($n!$ permutations, [Chapter 12](12-listmle.qmd)), or
+numerically unstable (raw likelihoods, [Chapter 2](02-probability-to-objective.qmd)).
+If nothing breaks, skip to step 7.
+
+**6. Construct a surrogate, and name what it assumes.** A surrogate is
+useful exactly because it's tractable while trying to preserve the
+property from step 2 — never because it's convenient and coincidentally
+resembles the real target. [Chapters 9](09-surrogate-losses.qmd),
+[11](11-ranknet.qmd), and [13](13-optimizing-ranking-metrics.qmd) are three
+different surrogate constructions (margin relaxation, pairwise
+decomposition, directly-defined metric-aware gradients) — say explicitly
+which pattern you're using and what it gives up relative to the true
+target.
+
+**7. Analyze the resulting loss.** Its minimizer (what does minimizing it
+actually recover — [Chapter 8](08-decision-theory-proper-scoring.qmd)'s
+lesson that different losses recover different statistics is exactly what
+to check here); its gradients and curvature
+([Chapter 17](17-losses-and-optimization.qmd)); whether it's convex;
+whether it's a proper scoring rule or statistically consistent where that
+matters ([Chapters 8](08-decision-theory-proper-scoring.qmd)–[9](09-surrogate-losses.qmd)).
+And classify its origin using this book's six labels — *derived from
+likelihood*, *derived from Bayesian/MAP reasoning*, *derived from decision
+theory*, *surrogate/relaxation*, *heuristic/design choice*, or *hybrid* —
+because that label is a compressed summary of everything steps 3–6 just
+established.
+
+**8. Stress-test pathological cases.** Perfect prediction. Confidently
+wrong prediction. An outlier. Severe class imbalance. Label noise. Extreme
+logits. A degenerate input (all-zero, all-identical). A loss that behaves
+sensibly in the typical case and only reveals a problem at one of these
+edges is not yet understood — [Chapters 5](05-laplace-robust-losses.qmd)
+and [6](06-bernoulli-categorical-cross-entropy.qmd) both found their
+central lessons (robustness, confident-wrong penalties) exactly here.
+
+**9. Check for an existing objective, then validate empirically.** Does
+one of the eighteen objectives already in this book already capture what
+steps 1–2 named? If a genuinely new construction survives steps 3–8, the
+mathematical case for it is done — only then does it make sense to run the
+experiment. Empirical validation answers "does this help in practice"; it
+cannot substitute for steps 1–8 answering "does this objective mean what I
+think it means."
+
+## A worked example: ordinal regression
+
+Take a problem this book hasn't covered: predicting a 1-to-5 star rating.
+
+**Step 1.** $\mathcal{Y} = \{1,2,3,4,5\}$ — discrete, but *ordered*: a
+5-star item predicted as 4 stars is a smaller mistake than one predicted as
+1 star. That ordering is real structure, and it's already enough to rule
+out two default choices: plain categorical cross-entropy
+([Chapter 6](06-bernoulli-categorical-cross-entropy.qmd)) treats every
+wrong class as equally wrong, discarding the order entirely; plain
+regression on the integer codes ([Chapter 4](04-gaussian-squared-error.qmd))
+keeps the order but silently assumes the categories are evenly spaced
+numbers, which nothing about a 5-point scale actually guarantees.
+
+**Step 2.** A good prediction places high probability near the true
+rating and low probability far from it — not just "highest probability on
+the exact right bucket."
+
+**Step 3.** This is where the problem resolves. A **cumulative link
+model** [@mccullagh1980regression] represents the ordering directly:
+posit a single latent score $z=f_\theta(x)$ and $K-1=4$ ordered thresholds
+$b_1<b_2<b_3<b_4$, and define $P(Y\le k\mid x) = \sigma(b_k - z)$. This is
+a genuine probabilistic model — a monotonic sequence of Bernoulli-style
+cutoffs sharing one latent score — and it respects the ordering by
+construction, since $\sigma$ is monotonic and the $b_k$ are ordered. The
+per-class probability is $P(Y=k\mid x) = \sigma(b_k-z) - \sigma(b_{k-1}-z)$
+(with $b_0=-\infty$, $b_K=+\infty$), and the loss is the ordinary NLL of
+this model: $-\log\big(\sigma(b_k-z)-\sigma(b_{k-1}-z)\big)$ for the
+observed rating $k$. Origin tag: *derived from likelihood* — the ordering
+was captured in step 1, not bolted on afterward.
+
+**Steps 4–6 (decision theory, tractability, surrogate).** Not needed here:
+step 3 resolved cleanly with an exact, differentiable NLL. This is worth
+sitting with — the recipe doesn't always end in a complicated surrogate
+construction; sometimes the entire exercise is recognizing that the
+target's structure (here, *ordering*) has a matching likelihood family
+once you go looking for it instead of reaching for the nearest catalogue
+entry (plain classification or plain regression).
+
+**Step 7.** The minimizer at each $x$ is the model's best cumulative-odds
+fit to the true conditional distribution over ratings — a strictly proper
+scoring rule in the sense of [Chapter 8](08-decision-theory-proper-scoring.qmd),
+since it's an NLL. It's smooth in both $z$ and the thresholds $b_k$, so
+gradient-based training applies directly with no special-case optimizer.
+
+**Step 8.** A degenerate check: as two thresholds $b_k, b_{k+1}$ move
+close together, $P(Y=k)\to 0$ for every $x$ — that class becomes
+vanishingly rare under the model, which is the correct behavior when a
+rating genuinely never occurs, but worth monitoring during training since
+it signals the thresholds collapsing rather than a bug.
+
+**Step 9.** Ordinal regression already has a name and an established
+model family precisely because this reasoning is well trodden — the value
+of the exercise isn't discovering something new, it's confirming that the
+same nine questions this book used throughout land on the textbook answer
+without needing to have memorized it as a special case in advance.
+
+## What "good" looks like when you're done
+
+A loss that has been through this recipe should let you answer, without
+hedging: what its minimizer means: (step 7), what it assumes (steps 3–6),
+what breaks it (step 8), and which of the six origin labels it earns
+(step 7). If any of those four answers is genuinely "I'm not sure," that's
+the signal to go back a step — not a reason to start training and see what
+happens.
+
+## Closing thought
+
+The formulas in this book — MSE, cross-entropy, hinge, RankNet, ListMLE,
+InfoNCE, DPO — are worth knowing by name, the way it's worth knowing the
+names of theorems you could in principle re-derive. But the thing actually
+worth carrying forward is the derivation habit itself: given a new
+prediction problem, ask what's being predicted, what a good prediction
+means, whether a likelihood or a decision rule captures that, what breaks
+when you try to optimize it directly, and what a surrogate for it would
+need to preserve. A catalogue runs out the moment a new problem doesn't
+match an existing entry. This recipe doesn't.
+
+## Connections
+
+This chapter is the book's synthesis point, not a new derivation — nearly
+every earlier chapter is a worked instance of one step above. The two
+branches this recipe forks on are
+[Chapter 2](02-probability-to-objective.qmd) (likelihood) and
+[Chapter 8](08-decision-theory-proper-scoring.qmd) (decision theory);
+the surrogate-construction step is worked out concretely in
+[Chapters 9](09-surrogate-losses.qmd), [11](11-ranknet.qmd), and
+[13](13-optimizing-ranking-metrics.qmd); the analysis step leans directly
+on [Chapter 17](17-losses-and-optimization.qmd). [The Map](00-map.qmd)
+lays out how all eighteen chapters' objectives relate to each other as a
+single diagram — a good page to revisit now that the whole path from
+"learning problem" to "design your own" is complete.

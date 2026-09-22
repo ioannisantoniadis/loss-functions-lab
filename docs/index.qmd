@@ -2,4 +2,60 @@
 title: "Welcome"
 ---
 
-Placeholder.
+Most treatments of loss functions read like a glossary: "cross-entropy is
+defined as $-\sum_k y_k\log p_k$," followed by a formula and a few
+examples. That's a fact worth knowing, but it isn't understanding — it
+doesn't tell you why the formula has that particular shape, what it's
+implicitly assuming about your data, or what you'd change if your problem
+didn't quite fit. This book asks a harder question of every objective it
+covers: *where does this actually come from?*
+
+The answer, almost every time, turns out to be one of a small number of
+moves: assume a probabilistic model for what you're predicting and take its
+negative log-likelihood; name a decision and a cost and ask what minimizes
+its risk; or, when the thing you actually want is intractable to optimize
+directly, construct a surrogate and be explicit about what it gives up.
+Cross-entropy is a categorical likelihood's NLL — and, independently, a
+strictly proper scoring rule. RankNet is a Bradley–Terry preference model's
+NLL. Hinge loss is a margin-maximizing relaxation of 0–1 loss. DPO is a
+KL-regularized reward-maximization objective, rewritten once you notice the
+reward is already implicit in the policy. None of these are arbitrary — and
+once the pattern is visible, it stops needing to be memorized.
+
+Three commitments shape everything here:
+
+1. **Derive before defining.** Every objective's formula shows up only
+   after its assumptions do, following one recipe throughout: problem,
+   assumptions, derivation, resulting objective, interpretation, behavior,
+   limitations, optimization implications. "The loss is defined as..." is
+   the sentence this book is trying not to need.
+2. **Name the origin, every time.** Immediately after each objective is
+   derived, a callout states plainly whether it came from a likelihood, a
+   Bayesian prior, a decision rule, a surrogate relaxation, a design
+   choice, or some hybrid of these — because that label is what tells you
+   what the objective actually promises, and it's the same question worth
+   asking about an unfamiliar loss you encounter anywhere else.
+3. **Show the computation, not a diagram.** Every figure in this book is
+   generated from a small, real script — a maximum-likelihood fit, a
+   soft-thresholded MAP estimate, a RankNet gradient, a toy language
+   model's per-token surprise — on toy or synthetic data. If a figure
+   raises a question the prose doesn't answer, the script that produced it
+   usually will.
+
+## How this book is organized
+
+Eighteen chapters plus [a map](chapters/00-map.qmd) of how they connect,
+building one continuous chain: the learning problem, its probabilistic
+origin (likelihood, MLE, MAP), the classical losses that fall out of it
+(squared error, absolute error, cross-entropy), the information theory
+behind cross-entropy, decision theory and proper scoring rules, surrogate
+losses, four chapters on ranking objectives, three on modern objectives
+(contrastive learning, language-model pretraining, preference/DPO
+optimization), and finally two chapters of synthesis: how a loss's shape
+determines its optimization behavior, and — the actual destination — a
+reusable, nine-question recipe for designing a new objective from first
+principles rather than searching for one by name.
+
+Start at [the map](chapters/00-map.qmd) for the whole shape of the
+argument in one page, then read front to back, or jump straight to the
+chapter that answers the question you actually have.

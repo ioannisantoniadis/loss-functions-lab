@@ -2,4 +2,105 @@
 title: "Optimizing Ranking Metrics Directly"
 ---
 
-Placeholder.
+RankNet and ListMLE are both principled — genuine negative log-likelihoods
+of genuine probabilistic models — and both share a blind spot Chapter 11
+already flagged: neither one knows that position 1 matters more than
+position 40. A pair deep in the tail of a ranking and a pair at the very top
+contribute to RankNet's loss on exactly equal footing; ListMLE's early
+softmax steps happen to weight the top of the list more, but only as a side
+effect of the construction, not because anything in the loss was told to
+care about metric position. This chapter closes that gap directly, using an
+idea that sidesteps Chapter 10's differentiability problem rather than
+solving it.
+
+## The problem
+
+Take a pairwise or listwise surrogate that already trains reasonably well,
+and make it explicitly sensitive to the ranking metric actually being
+reported — NDCG, say — without needing that metric to be differentiable at
+all.
+
+## The LambdaRank idea
+
+Recall from [Chapter 11](11-ranknet.qmd) that RankNet's loss for a pair
+produces a gradient — a pull on $s_i$ — of magnitude $\sigma(-\Delta)$ where
+$\Delta = s_i - s_j$. LambdaRank [@burges2010ranknet] keeps that pull's
+*direction* and *shape* but rescales its magnitude by one more factor:
+
+$$
+\lambda_{ij} = \sigma(-\Delta) \cdot \big|\Delta\,\mathrm{NDCG}_{ij}\big|,
+$$
+
+where $\Delta\,\mathrm{NDCG}_{ij}$ is the change in the whole list's NDCG
+that would result from *swapping* items $i$ and $j$'s positions in the
+current ranking, holding everything else fixed. This number is easy to
+compute exactly — it only requires evaluating NDCG twice, once for the
+current order and once with two items swapped — even though NDCG itself
+cannot be differentiated with respect to the scores.
+
+This is a genuinely different move from everything else in this book so
+far. Every other chapter defined a scalar loss and then took its gradient.
+LambdaRank instead *defines the gradient directly* — the $\lambda_{ij}$
+values are treated as the per-pair force used to update scores, without
+ever being obtained by differentiating a single scalar objective. (A scalar
+loss with this gradient can be constructed after the fact, but the
+practical algorithm doesn't need it — it works directly with the forces.)
+LambdaMART is the same idea plugged into gradient-boosted trees, where each
+boosting round fits a tree to these $\lambda$ values instead of to a
+residual.
+
+@fig-lambdarank-weighting makes the effect concrete on a small 5-item list
+with a partly-misordered current ranking: the plain RankNet gradient
+magnitude for each ground-truth-preferred pair is compared against the same
+pair's gradient after multiplying by $|\Delta\mathrm{NDCG}|$. Pairs whose
+swap would change the *top* of the ranking are amplified sharply relative to
+pairs deep in the list whose swap barely moves NDCG at all — exactly the
+position-sensitivity that plain RankNet lacks.
+
+![Nine ground-truth-preferred pairs from a small 5-item list, ranked by relevance. Top: plain RankNet pairwise gradient magnitude, roughly comparable across pairs. Bottom: the same pairs after multiplying by $|\Delta\mathrm{NDCG}|$ for swapping that pair — pairs that matter for the top of the ranking are amplified; pairs confined to the bottom of the list shrink toward zero.](../images/lambdarank_weighting.png){#fig-lambdarank-weighting}
+
+## Other strategies, briefly
+
+LambdaRank's "define the gradient, skip the differentiable loss" trick is
+not the only way to attack a metric more directly. A different family of
+approaches makes the sort operation itself approximately differentiable —
+replacing the hard $\mathrm{argsort}$ with a smooth relaxation (a soft
+permutation) that can be differentiated end-to-end, trading off exactness
+for a usable gradient everywhere rather than a metric-weighted gradient at
+observed pairs only. Both strategies solve the same underlying problem from
+Chapter 10 — a metric with no usable gradient — by different means, and both
+are examples of the same higher-level move: give up on differentiating the
+*true* target and construct something differentiable, or at least
+optimizable, that tracks it.
+
+## The reasoning pattern, made explicit
+
+Chapter 10 named a five-step pattern this chapter has now walked through
+once, concretely:
+
+1. What ranking property is actually wanted? (Position-sensitive accuracy,
+   captured by NDCG.)
+2. What metric captures it? (NDCG itself.)
+3. Why can't it be optimized directly? (Piecewise-constant in the scores —
+   Chapter 10's figure.)
+4. What surrogate captures the desired behavior anyway? (RankNet's pairwise
+   gradient, reweighted by $|\Delta\mathrm{NDCG}|$.)
+5. What assumptions does the surrogate introduce? (That a locally-defined
+   swap gradient, accumulated pairwise, is a reasonable stand-in for
+   globally optimizing the metric — a heuristic connection, not a proof of
+   equivalence, though it works well in practice.)
+
+[Chapter 18](18-designing-a-new-loss.qmd) reuses this exact five-question
+pattern as a general-purpose tool for an arbitrary new problem, not just
+ranking — this chapter is its concrete rehearsal.
+
+## Connections
+
+- [Chapter 10](10-ranking-foundations.qmd) posed the metric/loss/surrogate
+  problem this chapter resolves for NDCG specifically.
+- [Chapter 11](11-ranknet.qmd) supplies the pairwise gradient LambdaRank
+  reweights rather than replaces.
+- [Chapter 12](12-listmle.qmd) is the contrast case: a listwise likelihood
+  with no explicit metric-awareness at all.
+- [Chapter 18](18-designing-a-new-loss.qmd) explicitly reuses this chapter's
+  five-step reasoning pattern as one of the tools in its general recipe.

@@ -1,5 +1,146 @@
 ---
-title: " ListMLE"
+title: "Listwise Ranking: ListMLE"
 ---
 
-Placeholder.
+RankNet learns from pairs, and a full ranking of $n$ items has $\binom{n}{2}$
+of them — but decomposing a ranking into pairs throws information away. A
+list where every adjacent pair is barely correctly ordered and a list where
+the whole thing is perfectly sorted can produce very similar total pairwise
+loss, even though only one of them is the ranking anyone actually wanted.
+The alternative this chapter derives models the probability of the entire
+observed ordering directly, as one object, rather than as a collection of
+independent pairwise judgments.
+
+## The problem
+
+Given an observed ranking (permutation) $\pi$ of $n$ items with scores
+$s_1,\dots,s_n = f_\theta(x_1),\dots,f_\theta(x_n)$, define a loss on the
+*whole* ordering at once, rather than pair by pair.
+
+## Assumptions
+
+Assume a generative story for how a ranking arises from scores: items are
+chosen one at a time, from the top down, and at each step the probability of
+picking a particular remaining item is proportional to the exponential of
+its score — exactly a softmax over whatever items are still left. This is
+the **Plackett–Luce model** [@luce1959individual; @plackett1975analysis]:
+
+$$
+P(\pi \mid s) = \prod_{k=1}^{n} \frac{\exp(s_{\pi(k)})}{\sum_{l=k}^{n} \exp(s_{\pi(l)})},
+$$
+
+where $\pi(k)$ is the index of the item placed at rank $k$. Read the product
+term by term: the first factor is the probability the top-ranked item is
+chosen first, from a softmax over *all* $n$ items; the second factor is the
+probability the second-ranked item is chosen next, from a softmax over the
+remaining $n-1$ items (the top pick removed); and so on down to a single
+item left with probability $1$. Nothing here assumes the choices are
+independent across steps — they explicitly are not, since each step's
+softmax is taken over a shrinking set — only that each step's *conditional*
+choice, given what's already been picked, follows a softmax over what
+remains. This is the same categorical/softmax construction from
+[Chapter 6](06-bernoulli-categorical-cross-entropy.qmd), applied repeatedly
+to a shrinking candidate set rather than once.
+
+## Derivation
+
+Taking the negative log of $P(\pi\mid s)$ turns the product into a sum, by
+exactly the same log mechanics as every other likelihood in this book
+(Chapter 2):
+
+$$
+-\log P(\pi\mid s) = \sum_{k=1}^{n} \left[-s_{\pi(k)} + \log\sum_{l=k}^n \exp(s_{\pi(l)})\right].
+$$
+
+Each summand is precisely Chapter 6's categorical cross-entropy — $-\log$ of
+a softmax probability — evaluated on the softmax over whatever items remain
+at step $k$. **ListMLE** [@xia2008listwise] is exactly this: the negative
+log-likelihood of the Plackett–Luce model, evaluated at the *observed*
+ground-truth permutation.
+
+@fig-listmle-construction walks through this for four toy items with fixed
+scores and an observed ranking that is *not* simply sorted by score (so the
+loss is genuinely nonzero): at each step, the bar chart shows the softmax
+over whatever items remain, with the item the observed ranking actually
+picks next highlighted. The full permutation's likelihood is the product of
+the four highlighted probabilities; the ListMLE loss is minus the sum of
+their logs.
+
+![ListMLE's Plackett–Luce construction made concrete for four toy items and an observed ranking B, A, D, C. Each panel is a softmax over whichever items remain; the highlighted bar is the item the observed ranking picks next. The full permutation's probability is the product of the four highlighted values — the loss is minus the sum of their logs.](../images/listmle_construction.png){#fig-listmle-construction}
+
+## The resulting objective
+
+::: {.callout-note title="Definition — ListMLE"}
+$$
+\ell_{\mathrm{ListMLE}}(\theta) = -\log P(\pi \mid s) = \sum_{k=1}^{n} \left[-s_{\pi(k)} + \log\sum_{l=k}^n \exp(s_{\pi(l)})\right]
+$$
+:::
+
+::: {.callout-tip title="Origin: derived from likelihood"}
+ListMLE is the NLL of a genuine generative model of rankings (Plackett–Luce)
+— not a new kind of construction invented for lists. It is, more precisely,
+a *chain* of Chapter 6's categorical cross-entropy, one link per rank
+position, each conditioned on the positions already resolved.
+:::
+
+## Interpretation
+
+Minimizing $\ell_{\mathrm{ListMLE}}$ pushes the model's scores toward
+assigning high sequential "pick probability" to the observed ranking at
+every step — the item that should be ranked first should look like the
+clear top choice among all $n$ items; the item that should be ranked second
+should look like the clear top choice among the remaining $n-1$; and so on.
+Because every step still uses a full softmax, mistakes at any position
+affect the gradient for every item still under consideration at that step,
+not just the two items directly compared — a structurally richer training
+signal than the pairwise comparisons of Chapter 11.
+
+## Behavior and edge cases
+
+Early steps in the product involve softmaxes over more items and dominate
+the top of the ranking, which is usually where mistakes matter most anyway
+— a useful, if accidental, alignment with how ranking metrics like NDCG
+weight position. Ties or near-ties among lower-ranked items contribute
+softmax terms with several comparably-sized probabilities, so the loss is
+comparatively insensitive to their exact relative order — arguably
+appropriate, since real annotators are usually least reliable about the
+tail of a ranking too.
+
+## Limitations
+
+The Plackett–Luce model has its own baked-in assumption, sometimes called
+independence of irrelevant alternatives: the relative probability of
+picking item $i$ over item $j$ at any step doesn't depend on which other
+items are also present. Real human ranking behavior can violate this (the
+presence of a third, similar option can change a stated preference between
+the first two) — worth knowing this is a modeling choice, not a law.
+Computationally, ListMLE is $O(n)$ softmax evaluations per list (via a
+single cumulative-sum trick over the sorted scores) rather than the $n!$
+permutations a brute-force likelihood would require — tractable, but each
+step still costs a full softmax over the remaining candidates, more than
+RankNet's simple pairwise comparisons.
+
+## Optimization implications
+
+Each step is a softmax cross-entropy — smooth and well-understood, with the
+same gradient-saturation behavior described in Chapter 6 (confidently wrong
+picks are corrected hardest). Summing $n$ such terms per list means the
+per-example computational and memory cost scales with list length, worth
+knowing when choosing between pairwise and listwise approaches for large
+candidate sets; see [Chapter 17](17-losses-and-optimization.qmd) for the
+general comparison.
+
+## Connections
+
+- [Chapter 11](11-ranknet.qmd) is the pairwise alternative this chapter's
+  listwise construction is contrasted against directly.
+- [Chapter 6](06-bernoulli-categorical-cross-entropy.qmd) supplies the
+  categorical cross-entropy this chapter chains together, step by step.
+- [Chapter 13](13-optimizing-ranking-metrics.qmd) continues the theme of
+  optimizing a listwise objective, this time made explicitly aware of a
+  ranking metric.
+- [Chapter 15](15-language-model-objectives.qmd)'s autoregressive
+  language-model factorization is, structurally, the same idea as this
+  chapter's Plackett–Luce construction — a chain of categorical choices,
+  each conditioned on what came before — applied to token sequences instead
+  of rankings.

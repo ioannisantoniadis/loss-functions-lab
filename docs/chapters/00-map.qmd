@@ -2,4 +2,52 @@
 title: "The Map"
 ---
 
-Placeholder.
+This book is one continuous argument, not eighteen independent topics, so
+before Chapter 1 it's worth seeing the whole shape of it at once.
+@fig-taxonomy-map lays out all eighteen chapters in reading order (the gray
+spine along the bottom) together with the most important callbacks between
+non-adjacent chapters (the arcs above it) — places where a later chapter
+reuses, reconciles, or reinterprets something derived earlier rather than
+introducing something new.
+
+![Every chapter in reading order, colored by which of this book's argument-families it belongs to, with arcs marking the main callbacks between non-adjacent chapters — for instance Chapter 9's logistic loss reappearing inside Chapter 11's RankNet, or Chapter 11's Bradley–Terry model reappearing inside Chapter 16's DPO derivation.](../images/taxonomy_map.png){#fig-taxonomy-map}
+
+## The five families
+
+Every loss in this book is color-coded by where it actually comes from —
+the same six-label taxonomy (five shown here; *heuristic/design choice* and
+*hybrid* share the pink "modern / hybrid" color, since most heuristic
+choices in this book turn out to be one ingredient of a hybrid) that each
+chapter uses explicitly in its own "Origin" callout:
+
+- **Likelihood** (blue) — a loss derived as the negative log-likelihood of
+  an explicit probabilistic model: Gaussian → squared error, Laplace →
+  absolute error, Bernoulli/categorical → cross-entropy, and — the same
+  construction, just applied to sequences and permutations instead of
+  single examples — ListMLE and language-model pretraining.
+- **Decision theory** (orange) — a loss derived from naming a decision and
+  a utility directly, with no probabilistic model as an intermediate step.
+- **Surrogate / structured** (green) — a tractable stand-in for something
+  that resists direct optimization: hinge for 0–1 loss, RankNet and
+  LambdaRank for rank-position metrics.
+- **Modern / hybrid** (pink) — objectives that combine more than one of the
+  above, or are motivated primarily by a desired geometric or behavioral
+  property rather than a single clean derivation: contrastive learning, DPO.
+- **Synthesis** (purple) — the two closing chapters, which don't introduce
+  a new loss at all but instead connect everything derived earlier to
+  optimization behavior and to a reusable design procedure.
+
+## Reading paths
+
+Front to back is the intended path — each chapter leans on specific results
+from the ones before it, and the arcs in the figure above are easiest to
+appreciate having just read both of their endpoints. But the book is
+modular enough to enter anywhere a specific question points: arriving
+already knowing you want cross-entropy's information-theoretic meaning
+starts at [Chapter 7](07-entropy-cross-entropy-kl.qmd); arriving with a
+ranking problem starts at [Chapter 10](10-ranking-foundations.qmd); arriving
+having just read the DPO paper and wanting the parts that weren't spelled
+out starts at [Chapter 16](16-preference-objectives.qmd). Whatever the entry
+point, [Chapter 18](18-designing-a-new-loss.qmd) is worth reading last
+regardless — it's where the whole book's method, not just its results, gets
+made explicit and reusable.
