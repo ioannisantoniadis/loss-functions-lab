@@ -1,0 +1,32 @@
+/*-- scss:defaults --*/
+// Same brand tokens as scripts/figures/_theme.py, and the same palette used
+// in optimization-lab and modern-ai-systems-and-methods, so all three sites
+// and their embedded figures read as one system.
+$primary:    #2a78d6;
+$body-bg:    #fcfcfb;
+$body-color: #0b0b0b;
+$link-color: #2a78d6;
+$font-family-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+$font-family-monospace: "SF Mono", Menlo, Consolas, monospace;
+$headings-font-weight: 600;
+$toc-color: #52514e;
+$code-block-bg: #f9f9f7;
+
+/*-- scss:rules --*/
+.figure-caption, figcaption {
+  color: #52514e;
+  font-size: 0.9em;
+}
+
+.callout {
+  border-radius: 4px;
+}
+
+img {
+  border-radius: 4px;
+}
+
+// "Origin: ..." tags (see CONVENTIONS.md) are plain callout-tip boxes —
+// tip's built-in green/lightbulb styling is already visually distinct from
+// callout-note's blue/info styling used for Definition boxes, so no custom
+// class is needed (Quarto strips unrecognized classes off callout divs).

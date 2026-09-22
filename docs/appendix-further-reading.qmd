@@ -1,0 +1,99 @@
+---
+title: "Further Reading"
+---
+
+This book is deliberately short: it aims to give you the *machinery* for
+deriving an objective, not to catalogue every objective in the literature.
+These are the books and papers worth going to next.
+
+## General textbooks covering this material in more depth
+
+- Christopher Bishop, *Pattern Recognition and Machine Learning*
+  [@bishop2006prml] — Chapter 1 (probability and decision theory) and
+  Chapter 4 (discriminative classification) cover much of Parts I–V of this
+  book with more statistical machinery.
+- Kevin Murphy, *Probabilistic Machine Learning: An Introduction*
+  [@murphy2022pmlbook] and *Advanced Topics* [@murphy2023pmladvanced] — the
+  modern, exhaustive reference for everything probabilistic in this book,
+  including proper scoring rules and calibration.
+- Trevor Hastie, Robert Tibshirani, and Jerome Friedman, *The Elements of
+  Statistical Learning* [@hastie2009elements] — the standard reference for
+  regularization, model selection, and the statistical view of loss
+  minimization.
+- Ian Goodfellow, Yoshua Bengio, and Aaron Courville, *Deep Learning*
+  [@goodfellow2016deep] — Chapter 5 covers maximum likelihood estimation as
+  the basis for essentially all deep learning objectives.
+
+## Information theory
+
+- Thomas Cover and Joy Thomas, *Elements of Information Theory*
+  [@cover2006elements] — the canonical treatment of entropy, cross-entropy,
+  and KL divergence, including the inequalities this book only states.
+- Claude Shannon, "A Mathematical Theory of Communication"
+  [@shannon1948mathematical] — where entropy, as used everywhere in this
+  book, originates.
+
+## Statistical decision theory and scoring rules
+
+- Abraham Wald, "Statistical Decision Functions" [@wald1949statistical] and
+  James Berger, *Statistical Decision Theory and Bayesian Analysis*
+  [@berger1985statistical] — the formal decision-theoretic framework behind
+  [Chapter 8](chapters/08-decision-theory-proper-scoring.qmd).
+- Tilmann Gneiting and Adrian Raftery, "Strictly Proper Scoring Rules,
+  Prediction, and Estimation" [@gneiting2007strictly] — the modern reference
+  on proper scoring rules, well beyond what this book's single chapter
+  covers.
+
+## Statistical learning theory and surrogate losses
+
+- Vladimir Vapnik, *Statistical Learning Theory* [@vapnik1998statistical] —
+  the origin of the margin-based, empirical-risk-minimization view this book
+  leans on throughout Parts V–VI.
+- Peter Bartlett, Michael Jordan, and Jon McAuliffe, "Convexity,
+  Classification, and Risk Bounds" [@bartlett2006convexity] — the precise
+  theory of when a convex surrogate is statistically consistent for 0–1
+  loss, referenced in [Chapter 9](chapters/09-surrogate-losses.qmd).
+
+## Learning to rank
+
+- Christopher Burges, "From RankNet to LambdaRank to LambdaMART: An
+  Overview" [@burges2010ranknet] — a first-hand account of the reasoning
+  behind [Chapters 11](chapters/11-ranknet.qmd) and
+  [13](chapters/13-optimizing-ranking-metrics.qmd), by the author of both
+  methods.
+- Tie-Yan Liu's *Learning to Rank for Information Retrieval* survey and the
+  original ListNet/ListMLE papers [@cao2007learning; @xia2008listwise] for
+  the full pointwise/pairwise/listwise landscape this book only samples.
+
+## Contrastive and representation learning
+
+- Aäron van den Oord, Yazhe Li, and Oriol Vinyals, "Representation Learning
+  with Contrastive Predictive Coding" [@oord2018representation] — the
+  InfoNCE objective used throughout modern self-supervised learning.
+- Ting Chen et al., "A Simple Framework for Contrastive Learning of Visual
+  Representations" (SimCLR) [@chen2020simple] for a concrete, influential
+  application of the ideas in [Chapter 14](chapters/14-contrastive-objectives.qmd).
+
+## Language models and preference optimization
+
+- Ashish Vaswani et al., "Attention Is All You Need" [@vaswani2017attention]
+  — the architecture whose training objective is the subject of
+  [Chapter 15](chapters/15-language-model-objectives.qmd).
+- Rafael Rafailov et al., "Direct Preference Optimization: Your Language
+  Model is Secretly a Reward Model" [@rafailov2023direct] — the paper
+  underlying [Chapter 16](chapters/16-preference-objectives.qmd); read it
+  directly for the full derivation this book compresses.
+- Paul Christiano et al., "Deep Reinforcement Learning from Human
+  Preferences" [@christiano2017deep] and Long Ouyang et al., "Training
+  Language Models to Follow Instructions with Human Feedback"
+  [@ouyang2022training] for the RLHF lineage DPO grew out of.
+
+## This author's other books
+
+- [optimization-lab](https://github.com/ioannisantoniadis/optimization-lab)
+  — for everything this book gestures at but doesn't derive about *how* a
+  loss is actually minimized: convexity, conditioning, Gauss–Newton,
+  high-dimensional loss landscapes.
+- [modern-ai-systems-and-methods](https://github.com/ioannisantoniadis/modern-ai-systems-and-methods)
+  — a broader field guide to where these objectives are used, in context,
+  across supervised learning, ranking, generative models, and RL.

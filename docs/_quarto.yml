@@ -1,0 +1,82 @@
+project:
+  type: book
+  output-dir: _site
+
+book:
+  title: "loss-functions-lab"
+  subtitle: "Loss functions and ML objectives, derived from first principles"
+  description: >-
+    Where cross-entropy, MSE, hinge loss, RankNet, and DPO actually come
+    from — and a reusable framework for deriving the next one instead of
+    picking a formula off a list.
+  site-url: "https://ioannisantoniadis.github.io/loss-functions-lab/"
+  repo-url: "https://github.com/ioannisantoniadis/loss-functions-lab"
+  repo-actions: [edit, issue]
+  page-footer:
+    left: >-
+      Source on [GitHub](https://github.com/ioannisantoniadis/loss-functions-lab).
+    right: "Rendered with [Quarto](https://quarto.org)."
+  chapters:
+    - index.qmd
+    - chapters/00-map.qmd
+    - part: "I. The learning problem"
+      chapters:
+        - chapters/01-the-learning-problem.qmd
+    - part: "II. Where objectives come from"
+      chapters:
+        - chapters/02-probability-to-objective.qmd
+        - chapters/03-mle-map-regularization.qmd
+    - part: "III. The classical losses, derived"
+      chapters:
+        - chapters/04-gaussian-squared-error.qmd
+        - chapters/05-laplace-robust-losses.qmd
+    - part: "IV. Classification and information theory"
+      chapters:
+        - chapters/06-bernoulli-categorical-cross-entropy.qmd
+        - chapters/07-entropy-cross-entropy-kl.qmd
+    - part: "V. Beyond likelihood"
+      chapters:
+        - chapters/08-decision-theory-proper-scoring.qmd
+    - part: "VI. Surrogates and margins"
+      chapters:
+        - chapters/09-surrogate-losses.qmd
+    - part: "VII. Ranking objectives"
+      chapters:
+        - chapters/10-ranking-foundations.qmd
+        - chapters/11-ranknet.qmd
+        - chapters/12-listmle.qmd
+        - chapters/13-optimizing-ranking-metrics.qmd
+    - part: "VIII. Modern and structured objectives"
+      chapters:
+        - chapters/14-contrastive-objectives.qmd
+        - chapters/15-language-model-objectives.qmd
+        - chapters/16-preference-objectives.qmd
+    - part: "IX. Synthesis"
+      chapters:
+        - chapters/17-losses-and-optimization.qmd
+        - chapters/18-designing-a-new-loss.qmd
+    - part: "Appendices"
+      chapters:
+        - appendix-notation.qmd
+        - appendix-further-reading.qmd
+  navbar:
+    background: light
+  page-navigation: true
+
+format:
+  html:
+    theme:
+      - cosmo
+      - theme.scss
+    toc: true
+    number-sections: true
+    number-depth: 2
+    fig-align: center
+    smooth-scroll: true
+    grid:
+      sidebar-width: 260px
+      body-width: 850px
+      margin-width: 250px
+    link-external-newwindow: true
+
+bibliography: references.bib

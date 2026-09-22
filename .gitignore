@@ -1,0 +1,8 @@
+.DS_Store
+.venv/
+__pycache__/
+*.pyc
+private-notes.md
+loss-functions-repository-spec.md
+docs/_site/
+docs/.quarto/

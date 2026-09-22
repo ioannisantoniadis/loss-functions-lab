@@ -1,0 +1,103 @@
+---
+title: "Notation and Conventions"
+---
+
+Every chapter in this book reuses the symbols on this page rather than
+redefining its own. When a chapter needs a symbol that isn't here yet, it
+introduces it locally and it gets added here. If two chapters ever seem to
+use the same letter for two different things, that's a bug in the book, not
+a feature of the mathematics — please open an issue.
+
+## The learning problem
+
+| Symbol | Meaning |
+|---|---|
+| $x \in \mathcal{X}$ | an input / feature vector |
+| $y \in \mathcal{Y}$ | a target: a label, a real value, a rank, a token, a preference — whatever $\mathcal{Y}$ is for the problem at hand |
+| $\theta \in \Theta$ | the parameters of a model |
+| $f_\theta$ | the model / predictor, $f_\theta : \mathcal{X} \to \mathcal{Z}$ |
+| $z = f_\theta(x)$ | the model's raw output: a real number, a vector of logits, a score — before any link function is applied |
+| $\hat y$ | a point prediction, when one is being made (as opposed to a distribution) |
+| $P$ | the true, unknown data-generating distribution over $(X, Y)$ |
+| $D = \{(x_i, y_i)\}_{i=1}^n$ | an observed dataset, drawn i.i.d. from $P$ |
+
+## Loss, risk, and likelihood — kept visually distinct on purpose
+
+This book is explicit about a distinction that informal usage often blurs:
+a **loss** is a penalty you choose to define what a good prediction means; a
+**likelihood** is a probability the model itself assigns to data that
+already happened. They are related — [Chapter 2](chapters/02-probability-to-objective.qmd)
+is the whole story of how one becomes the other — but conflating their
+notation would quietly conflate the concepts too. So:
+
+| Symbol | Meaning |
+|---|---|
+| $\ell(\theta; x, y)$, or $\ell(y, \hat y)$ | the **per-example loss** — lowercase script $\ell$, always |
+| $R(\theta) = \mathbb{E}_{(X,Y)\sim P}[\ell(\theta; X, Y)]$ | the **expected risk** (population risk) — what you actually want to minimize |
+| $\hat R(\theta) = \frac{1}{n}\sum_{i=1}^n \ell(\theta; x_i, y_i)$ | the **empirical risk** — what you can actually compute, from $D$ |
+| $\mathcal{L}(\theta) = p(D \mid \theta) = \prod_i p(y_i \mid x_i; \theta)$ | the **likelihood** — uppercase calligraphic $\mathcal{L}$, always. A function of $\theta$ with the data fixed; *not* a probability distribution over $\theta$ and not, by itself, a loss |
+| $\log \mathcal{L}(\theta)$ | the log-likelihood |
+| $\mathrm{NLL}(\theta) = -\log \mathcal{L}(\theta) = -\sum_i \log p(y_i \mid x_i;\theta)$ | the negative log-likelihood. [Chapter 2](chapters/02-probability-to-objective.qmd) derives that minimizing this *is* a particular, well-motivated choice of $\hat R(\theta)$ — but the two symbols are never used interchangeably before that equivalence has been earned |
+| $p(\theta)$, $p(\theta \mid D)$ | prior and posterior over parameters (used from [Chapter 3](chapters/03-mle-map-regularization.qmd) onward) |
+
+## Probability, information, and distributions
+
+| Symbol | Meaning |
+|---|---|
+| $p(y \mid x; \theta)$, or $p_\theta(y \mid x)$ | the conditional distribution the model defines over $y$ given $x$ |
+| $\sigma(z) = \dfrac{1}{1+e^{-z}}$ | the logistic sigmoid |
+| $\mathrm{softmax}(z)_k = \dfrac{e^{z_k}}{\sum_j e^{z_j}}$ | the softmax, mapping a logit vector to a categorical distribution |
+| $H(P) = -\sum_x P(x)\log P(x)$ | the entropy of $P$ |
+| $H(P, Q) = -\sum_x P(x) \log Q(x)$ | the cross-entropy of $Q$ relative to $P$ |
+| $D_{\mathrm{KL}}(P \| Q) = \sum_x P(x) \log \frac{P(x)}{Q(x)}$ | the Kullback–Leibler divergence from $Q$ to $P$ |
+| $\mathcal{N}(\mu, \sigma^2)$, $\mathrm{Laplace}(\mu, b)$, $\mathrm{Bernoulli}(p)$, $\mathrm{Categorical}(p)$ | the standard named distributions, used exactly as their conventional parameterizations |
+
+All logarithms are natural ($\ln$) unless a chapter says otherwise; this
+matters only for the numerical *scale* of NLL/entropy figures (base-2 gives
+"bits" instead of "nats"), never for any derivation's structure.
+
+## Decision theory (from [Chapter 8](chapters/08-decision-theory-proper-scoring.qmd) onward)
+
+| Symbol | Meaning |
+|---|---|
+| $a \in \mathcal{A}$ | a decision / action — often, but not always, the same space as $\mathcal{Y}$ |
+| $u(a, y)$ | a utility; $\ell(a,y) = -u(a,y)$ up to convention |
+| conditional risk of $a$ at $x$ | $\mathbb{E}_{Y \mid X=x}[\ell(a, Y)]$ |
+| Bayes-optimal decision | $a^\star(x) = \arg\min_a \mathbb{E}_{Y\mid X=x}[\ell(a, Y)]$ |
+
+## Ranking (Chapters [10](chapters/10-ranking-foundations.qmd)–[13](chapters/13-optimizing-ranking-metrics.qmd))
+
+| Symbol | Meaning |
+|---|---|
+| $s_i = f_\theta(x_i)$ | the model's score for item $i$ |
+| $i \succ j$ | item $i$ is preferred to / ranked above item $j$ |
+| $\pi$ | a permutation (a full ranking) of a set of items |
+| $\mathrm{NDCG}, \mathrm{DCG}, \mathrm{MRR}, \mathrm{MAP}$ | ranking-quality metrics, defined where first used |
+
+## Preference and sequence objectives (Chapters [15](chapters/15-language-model-objectives.qmd)–[16](chapters/16-preference-objectives.qmd))
+
+| Symbol | Meaning |
+|---|---|
+| $x_{<t} = (x_1, \dots, x_{t-1})$ | a token sequence's prefix before position $t$ |
+| $y^+ \succ y^-$ | $y^+$ is the preferred completion in a pairwise preference pair |
+| $\pi_\theta$, $\pi_{\mathrm{ref}}$ | a trainable policy and a fixed reference policy over completions |
+| $r(x,y)$ | a scalar reward for completion $y$ given prompt $x$ |
+
+## Recurring visual conventions
+
+Two devices repeat in every chapter that introduces an objective:
+
+**Origin tags.** Immediately after a loss is derived, a short callout names
+where it actually came from, using exactly one of six labels: *derived from
+likelihood*, *derived from Bayesian/MAP reasoning*, *derived from decision
+theory*, *surrogate/relaxation*, *heuristic/design choice*, or *hybrid*. This
+is not decoration — it's the book's running answer to "is this a fact about
+the world, or a choice I'm making?"
+
+**Definition boxes.** A named, citable formula (e.g. the RankNet loss, the
+Bradley–Terry model) gets a `callout-note` box titled "Definition — ...".
+Boxes are for landmarks worth finding again on a re-read, not for every
+equation.
+
+See `CONVENTIONS.md` in the repository root for the full authoring template
+these chapters follow.
