@@ -164,9 +164,9 @@ identity above is silent on.
   and (implicitly) KL divergence in relation to each other for the first
   time — this chapter is where that triad becomes precise rather than
   suggestive.
-- [Chapter 10](10-ranking-foundations.qmd) and
-  [12](12-listmle.qmd) reuse this exact log-probability-of-the-truth
-  machinery for permutations instead of classes.
+- [Chapter 11](11-ranknet.qmd) and [12](12-listmle.qmd) reuse this exact
+  log-probability-of-the-truth machinery for pairwise preferences and full
+  permutations instead of classes.
 - [Chapter 14](14-contrastive-objectives.qmd)'s InfoNCE objective has a
   mutual-information reading that traces directly back to the KL machinery
   built here.

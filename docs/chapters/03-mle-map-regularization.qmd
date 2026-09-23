@@ -118,7 +118,7 @@ $$
 $$
 :::
 
-::: {.callout-tip title="Origin: derived from Bayesian/MAP reasoning — with a caveat"}
+::: {.callout-tip title="Origin: derived from Bayesian/MAP reasoning"}
 The MAP objective itself is a direct consequence of Bayes' rule; no part of
 it is a heuristic. But labeling *every* $\ell_2$ or $\ell_1$ penalty seen in
 practice as "secretly a prior" overclaims. The equivalence is exact only
@@ -178,8 +178,8 @@ supports — it's a *available* interpretation, not a guaranteed one.
 
 Adding an $\ell_2$ penalty keeps the objective smooth and only changes its
 curvature (it strictly increases it — @fig-prior-as-regularizer's green
-curve is visibly narrower than the blue one — which is part of why ridge
--regularized problems are typically better-conditioned than their
+curve is visibly narrower than the blue one — which is part of why
+ridge-regularized problems are typically better-conditioned than their
 unregularized counterparts). Adding an $\ell_1$ penalty introduces a
 genuine non-differentiability at $w=0$, ruling out plain gradient descent
 at that point and requiring subgradient methods or proximal operators

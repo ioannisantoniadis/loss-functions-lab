@@ -1,6 +1,4 @@
----
-title: "The Map"
----
+# The Map {.unnumbered}
 
 This book is one continuous argument, not eighteen independent topics, so
 before Chapter 1 it's worth seeing the whole shape of it at once.
@@ -36,6 +34,11 @@ chapter uses explicitly in its own "Origin" callout:
 - **Synthesis** (purple) — the two closing chapters, which don't introduce
   a new loss at all but instead connect everything derived earlier to
   optimization behavior and to a reusable design procedure.
+
+@fig-taxonomy-map's legend shows a sixth color, gray, for Chapter 1 alone:
+it sets up the vocabulary (loss, risk, empirical risk) every other chapter
+uses but doesn't itself derive a loss, so it sits outside the six-label
+origin taxonomy entirely rather than counting as a sixth family.
 
 ## Reading paths
 

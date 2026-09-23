@@ -45,10 +45,16 @@ from likelihood*. This one question resolved Chapters 4 through 7, 12, and
 **4. If not, what decision-theoretic objective captures the desired
 behavior?** When no clean likelihood fits, [Chapter 8](08-decision-theory-proper-scoring.qmd)'s
 approach still applies: name the action space and a utility/loss directly,
-and ask what minimizing its conditional risk actually recovers. This is
-how [Chapter 16](16-preference-objectives.qmd)'s reward-maximization step
-and [Chapter 14](14-contrastive-objectives.qmd)'s embedding-geometry losses
-get justified when step 3 doesn't resolve cleanly.
+and ask what minimizing its conditional risk actually recovers. This is how
+[Chapter 16](16-preference-objectives.qmd)'s reward-maximization step gets
+justified when step 3 doesn't resolve cleanly. Sometimes neither a
+likelihood nor a decision rule is the honest answer — [Chapter 14](14-contrastive-objectives.qmd)'s
+contrastive and triplet losses target a desired embedding *geometry*
+directly, with no probabilistic or decision-theoretic story underneath
+(origin tag: *heuristic/design choice*). That's a legitimate fourth path,
+not a failure to find one of the first three — just be honest that it's
+what's happening, the way Chapter 14 is, rather than dressing a design
+choice up as something more principled than it is.
 
 **5. Is the resulting objective tractable?** Name *specifically* what
 breaks, if anything: non-differentiable (0–1 loss), discontinuous
@@ -142,7 +148,7 @@ since it's an NLL. It's smooth in both $z$ and the thresholds $b_k$, so
 gradient-based training applies directly with no special-case optimizer.
 
 **Step 8.** A degenerate check: as two thresholds $b_k, b_{k+1}$ move
-close together, $P(Y=k)\to 0$ for every $x$ — that class becomes
+close together, $P(Y=k{+}1)\to 0$ for every $x$ — that class becomes
 vanishingly rare under the model, which is the correct behavior when a
 rating genuinely never occurs, but worth monitoring during training since
 it signals the thresholds collapsing rather than a bug.

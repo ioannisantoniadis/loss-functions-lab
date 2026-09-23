@@ -1,6 +1,4 @@
----
-title: "Welcome"
----
+# Welcome {.unnumbered}
 
 Most treatments of loss functions read like a glossary: "cross-entropy is
 defined as $-\sum_k y_k\log p_k$," followed by a formula and a few

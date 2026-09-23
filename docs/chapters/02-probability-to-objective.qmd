@@ -70,12 +70,12 @@ $$
 
 $\mathcal{L}(\theta)$ is a product of up to millions of terms, each a
 probability — a number no larger than 1, usually much smaller. This is a
-genuine numerical problem, not a stylistic one. @fig-likelihood-to-nll fits
-a single Gaussian mean to $n=30$ points and finds the *best-fitting*
-parameter already gives a likelihood around $2\times10^{-26}$; the
-companion script shows this only gets worse with more data; at $n=800$
-points, the true best-fitting likelihood underflows to exactly $0.0$ in
-64-bit floating point, even though the data and the model are both
+genuine numerical problem, not a stylistic one: the companion script behind
+@fig-likelihood-to-nll finds that even the *best-fitting* mean for just
+$n=30$ Gaussian-distributed points already gives a raw likelihood around
+$2\times10^{-26}$, and that this only gets worse with more data — by
+$n=800$ points, the true best-fitting likelihood underflows to exactly
+$0.0$ in 64-bit floating point, even though the data and the model are both
 completely well-behaved. Whatever function is used to *find* $\hat\theta$
 needs to avoid ever materializing $\mathcal{L}(\theta)$ as a raw number.
 
@@ -93,22 +93,17 @@ $$
 \log \mathcal{L}(\theta) = \log\prod_{i=1}^n p(y_i\mid x_i;\theta) = \sum_{i=1}^n \log p(y_i \mid x_i;\theta).
 $$
 
-@fig-likelihood-to-nll shows exactly this pair of curves side by side: the
-raw likelihood, spanning dozens of orders of magnitude and numerically
-unusable; and its log, a smooth, ordinarily-scaled function with the
-identical maximizer. The sum form has a second, independent benefit beyond
-numerical range: its gradient with respect to $\theta$ is a sum of
-per-example gradients, $\nabla_\theta \log\mathcal{L}(\theta) = \sum_i
-\nabla_\theta \log p(y_i\mid x_i;\theta)$, which is precisely what makes
-minibatch stochastic gradient descent a valid approximation — a random
-subset of the sum is an unbiased estimate of the whole sum. None of this
-would be available from the raw product.
-
-![Left: the raw likelihood of 30 points under a Gaussian model, as a function of a candidate mean — technically correct, but already at $10^{-26}$ at its own peak. Right: the negative log-likelihood of the same data — an ordinarily-scaled, convex curve with its minimum at exactly the same parameter value. Taking logs doesn't move the optimum; it makes the function usable.](../images/likelihood_to_nll.png){#fig-likelihood-to-nll}
+This sum form has a second, independent benefit beyond numerical range: its
+gradient with respect to $\theta$ is a sum of per-example gradients,
+$\nabla_\theta \log\mathcal{L}(\theta) = \sum_i \nabla_\theta \log
+p(y_i\mid x_i;\theta)$, which is precisely what makes minibatch stochastic
+gradient descent a valid approximation — a random subset of the sum is an
+unbiased estimate of the whole sum. None of this would be available from
+the raw product.
 
 ### From maximizing to minimizing
 
-Everything built so far is a maximization. Chapter 1 defined risk as
+Everything built so far is still a maximization. Chapter 1 defined risk as
 something to be *minimized*, matching the near-universal convention that
 training code minimizes a loss. One more step reconciles them: negating a
 function turns its maximizer into its minimizer, so
@@ -118,6 +113,17 @@ $$
 = \arg\max_\theta \log\mathcal{L}(\theta)
 = \arg\min_\theta \Big(-\log \mathcal{L}(\theta)\Big).
 $$
+
+@fig-likelihood-to-nll puts the whole transformation on screen at once,
+fitting a single Gaussian mean to $n=30$ points: the raw likelihood on the
+left, spanning dozens of orders of magnitude and numerically unusable, and
+its negative log — the quantity this section just arrived at — on the
+right, an ordinarily-scaled, convex curve whose *minimum* sits at exactly
+the same parameter value as the raw likelihood's *maximum*. Neither the log
+nor the negation moves the optimum; together they just make the function
+usable.
+
+![Left: the raw likelihood of 30 points under a Gaussian model, as a function of a candidate mean — technically correct, but already at $10^{-26}$ at its own peak. Right: the negative log-likelihood of the same data — an ordinarily-scaled, convex curve with its minimum at exactly the same parameter value. Taking logs and negating doesn't move the optimum; it makes the function usable.](../images/likelihood_to_nll.png){#fig-likelihood-to-nll}
 
 ## The resulting objective
 

@@ -66,10 +66,22 @@ $$
 $$
 This is not a new formula — it is Chapter 6's binary cross-entropy, in a
 different but equivalent notation, now visibly a function of the margin
-$m=yz$ alone rather than of $y$ and $p$ separately. It, too, upper-bounds
-0–1 loss (a short check confirms $\log(1+e^{-m}) \ge \mathbb{1}\{m<0\}$
-everywhere), and it's smooth: differentiable at every $m$, including $m=1$
-where hinge has a kink.
+$m=yz$ alone rather than of $y$ and $p$ separately. It's smooth:
+differentiable at every $m$, including $m=1$ where hinge has a kink.
+
+Unlike hinge, $\log(1+e^{-m})$ does *not* literally upper-bound 0–1 loss
+with the natural log used everywhere else in this book: at, say, $m=-0.2$,
+$\log(1+e^{0.2})\approx 0.80$, strictly below $\mathbb{1}\{m<0\}=1$. Hinge's
+bound needed no such care because it has no logarithm in it to rescale. A
+literal, everywhere upper bound *is* recoverable for the logistic surrogate
+— switch to $\log_2$, i.e. divide by $\ln 2$ — and @fig-surrogate-losses
+plots exactly that rescaled version for a fair visual comparison against
+hinge and 0–1 loss. The rescaling changes nothing that matters
+statistically: a positive constant multiple of a valid surrogate is still
+convex and still classification-calibrated (below), so both the natural-log
+form used in the definition box and Chapter 6, and the $\log_2$ form plotted
+here, are "the same surrogate" for every purpose except a literal pointwise
+bound.
 
 ## The resulting objective
 
@@ -78,7 +90,10 @@ $$
 \varphi_{\mathrm{hinge}}(m) = \max(0,\,1-m), \qquad
 \varphi_{\mathrm{logistic}}(m) = \log(1+e^{-m}), \qquad m = y\cdot f_\theta(x).
 $$
-Both are convex, both upper-bound 0–1 loss $\mathbb{1}\{m<0\}$.
+Both are convex. Hinge upper-bounds 0–1 loss $\mathbb{1}\{m<0\}$ exactly as
+written; logistic loss upper-bounds it too, once rescaled to $\log_2$ (a
+positive constant factor that changes nothing about convexity or
+consistency — see the derivation above).
 :::
 
 ::: {.callout-tip title="Origin: hinge is a surrogate/relaxation; logistic loss is a hybrid"}
@@ -87,7 +102,7 @@ of 0–1 loss, designed for margin-maximization, with no probabilistic
 derivation as a likelihood of anything standard. Logistic loss is
 different — it has *two* correct derivations that happen to produce the
 identical formula: Chapter 6's likelihood argument (Bernoulli NLL) and this
-chapter's surrogate argument (a smooth, convex upper bound on 0–1 loss).
+chapter's surrogate argument (a smooth, convex surrogate for 0–1 loss).
 Neither derivation is more "real" than the other; which one is relevant
 depends on whether you care about calibrated probabilities (the likelihood
 reading) or just a tractable stand-in for classification error (the
@@ -96,17 +111,18 @@ surrogate reading).
 
 ## Interpretation
 
-@fig-surrogate-losses puts 0–1 loss, hinge, and logistic loss on the same
-axes as functions of the margin. Both surrogates sit above the 0–1 step
-everywhere, confirming the upper-bound property visually; hinge is exactly
-linear beyond the kink at $m=1$ and exactly flat (zero) beyond it, while
-logistic loss decays smoothly and never reaches exactly zero for finite
-$m$ — a classifier trained on logistic loss keeps getting a (shrinking)
-gradient signal to push already-correct predictions to be even more
-confident, whereas one trained on hinge loss stops caring entirely once the
-margin requirement is met.
+@fig-surrogate-losses puts 0–1 loss, hinge, and logistic loss ($\log_2$
+form, so the bound comparison below is exact — see the derivation above) on
+the same axes as functions of the margin. Both surrogates sit above the 0–1
+step everywhere, confirming the upper-bound property visually; hinge is
+exactly linear beyond the kink at $m=1$ and exactly flat (zero) beyond it,
+while logistic loss decays smoothly and never reaches exactly zero for
+finite $m$ — a classifier trained on logistic loss keeps getting a
+(shrinking) gradient signal to push already-correct predictions to be even
+more confident, whereas one trained on hinge loss stops caring entirely
+once the margin requirement is met.
 
-![0–1 loss (the true target, piecewise constant) against two convex surrogates as functions of the margin $m$. Both hinge and logistic loss upper-bound 0–1 loss everywhere, which is what licenses training on the surrogate; they differ in smoothness (hinge has a kink at $m=1$; logistic is smooth everywhere) and in whether they keep rewarding confidence past the point of already being correct.](../images/surrogate_losses.png){#fig-surrogate-losses}
+![0–1 loss (the true target, piecewise constant) against two convex surrogates as functions of the margin $m$ — logistic loss shown here in its $\log_2$ form specifically so it upper-bounds 0–1 loss exactly like hinge does (the natural-log form used elsewhere in this chapter differs only by the positive constant factor $1/\ln 2$). Both surrogates upper-bound 0–1 loss everywhere in this form, which is what licenses training on the surrogate; they differ in smoothness (hinge has a kink at $m=1$; logistic is smooth everywhere) and in whether they keep rewarding confidence past the point of already being correct.](../images/surrogate_losses.png){#fig-surrogate-losses}
 
 ## Behavior and edge cases
 

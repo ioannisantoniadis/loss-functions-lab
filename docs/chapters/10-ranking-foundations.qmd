@@ -90,13 +90,23 @@ into with 0–1 classification loss, now one level up: the quantity that
 actually defines success (0–1 accuracy there, NDCG/MRR/MAP here) is exactly
 the quantity that's hardest to differentiate, precisely because "hardest
 decisions" tend to be the discrete, threshold-crossing kind. The response is
-the same each time: keep the *metric* as the thing you evaluate and report,
-and train against a *surrogate loss* — a differentiable stand-in chosen to
-push scores in the direction the metric would reward, even though it isn't
-the metric itself. [Chapter 11](11-ranknet.qmd) and
-[Chapter 12](12-listmle.qmd) build two different, principled surrogates this
-way; [Chapter 13](13-optimizing-ranking-metrics.qmd) goes further and builds
-a surrogate that's explicitly *aware* of which metric it's standing in for.
+the same each time, and it breaks down into five questions worth asking in
+order, every time this shape of problem shows up again:
+
+1. What property of a good outcome is actually wanted? (Here: getting the
+   top of a ranked list right.)
+2. What metric captures it? (NDCG, MRR, or MAP, depending on the task.)
+3. Why can't that metric be optimized directly? (It's a function of
+   $\mathrm{argsort}$ — piecewise-constant, zero gradient almost everywhere.)
+4. What surrogate captures the desired behavior anyway, even though it
+   isn't the metric itself? ([Chapter 11](11-ranknet.qmd) and
+   [Chapter 12](12-listmle.qmd) build two different, principled surrogates
+   this way; [Chapter 13](13-optimizing-ranking-metrics.qmd) goes further
+   and builds a surrogate that's explicitly *aware* of which metric it's
+   standing in for.)
+5. What assumptions does that surrogate introduce, and how well do they
+   actually track the metric it's standing in for?
+
 Keeping "metric," "loss," and "surrogate" as three distinct words for three
 distinct things — not synonyms — is exactly the discipline
 [Chapter 18](18-designing-a-new-loss.qmd)'s design recipe leans on for

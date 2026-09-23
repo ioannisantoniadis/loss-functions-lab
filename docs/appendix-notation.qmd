@@ -80,7 +80,7 @@ matters only for the numerical *scale* of NLL/entropy figures (base-2 gives
 |---|---|
 | $x_{<t} = (x_1, \dots, x_{t-1})$ | a token sequence's prefix before position $t$ |
 | $y^+ \succ y^-$ | $y^+$ is the preferred completion in a pairwise preference pair |
-| $\pi_\theta$, $\pi_{\mathrm{ref}}$ | a trainable policy and a fixed reference policy over completions |
+| $\pi_\theta$, $\pi_{\mathrm{ref}}$ | a trainable policy and a fixed reference policy over completions — always subscripted; bare $\pi$ is reserved for a ranking permutation (above) and never denotes a policy |
 | $r(x,y)$ | a scalar reward for completion $y$ given prompt $x$ |
 
 ## Recurring visual conventions

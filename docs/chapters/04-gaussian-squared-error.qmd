@@ -155,7 +155,7 @@ precisely what a squared penalty punishes hardest. Skewed noise makes
 "symmetric penalty around the mean" the wrong target altogether. And the
 heteroscedastic extension only helps if $\sigma_\theta(x)$ is itself
 well-specified — a badly-fit variance model can miscalibrate the weighting
-term 1 above just as easily as it can correctly calibrate it.
+term above just as easily as it can correctly calibrate it.
 
 ## Optimization implications
 
