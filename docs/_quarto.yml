@@ -12,7 +12,7 @@ book:
   site-url: "https://ioannisantoniadis.github.io/loss-functions-lab/"
   repo-url: "https://github.com/ioannisantoniadis/loss-functions-lab"
   repo-actions: [edit, issue]
-  image: images/taxonomy_map.png
+  image: images/social_preview.png
   open-graph: true
   twitter-card:
     card-style: summary_large_image

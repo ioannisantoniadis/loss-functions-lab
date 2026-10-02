@@ -1,6 +1,6 @@
 # loss-functions-lab
 
-![The book's spine and its main cross-links](docs/images/taxonomy_map.png)
+![loss-functions-lab: the book's 18 chapters in reading order, colored by where each loss comes from, with the cross-links between them](docs/images/social_preview.png)
 
 A small, focused Quarto book: where loss functions and ML objectives
 actually come from, derived from first principles rather than presented as

@@ -35,6 +35,7 @@ palette from this author's other two Quarto books
 read as one visual family. New figure scripts should do the same rather than
 styling matplotlib ad hoc.
 
-`fig_taxonomy_map.py` doubles as the README hero image and the site's
-link-preview image (`image:` in `docs/_quarto.yml`); its roughly 2:1 aspect
-suits the GitHub and Open Graph large-card format.
+`fig_social_preview.py` is the odd one out: it renders a 2560x1280 (2:1)
+banner of the book's spine with the title baked in, used as the README hero
+image, the site's link-preview image (`image:` in `docs/_quarto.yml`) and the
+repo's GitHub social preview.
