@@ -49,6 +49,16 @@ LambdaMART is the same idea plugged into gradient-boosted trees, where each
 boosting round fits a tree to these $\lambda$ values instead of to a
 residual.
 
+::: {.callout-tip title="Origin: heuristic/design choice"}
+LambdaRank's $\lambda_{ij}$ is not the gradient of a loss derived from a
+probability model or a decision rule. It is RankNet's likelihood-derived
+gradient, rescaled by $|\Delta\,\mathrm{NDCG}_{ij}|$ because experiments
+showed that this "gives very good results" [@burges2010ranknet]. Burges notes
+that for any one sorting of the items a cost with these gradients is easy
+to write down, but there is no single closed-form objective behind the
+algorithm, since the $\lambda$'s are recomputed after every re-sort.
+:::
+
 @fig-lambdarank-weighting makes the effect concrete on a small 5-item list
 with a partly-misordered current ranking: the plain RankNet gradient
 magnitude for each ground-truth-preferred pair is compared against the same

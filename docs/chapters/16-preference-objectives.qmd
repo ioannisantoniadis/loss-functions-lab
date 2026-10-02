@@ -251,15 +251,18 @@ signal into a steeper or shallower effective push.
 Minimizing $\mathcal{L}_{\mathrm{DPO}}$ pushes
 $\beta\log\frac{\pi_\theta(y^+\mid x)}{\pi_{\mathrm{ref}}(y^+\mid x)}$ above
 $\beta\log\frac{\pi_\theta(y^-\mid x)}{\pi_{\mathrm{ref}}(y^-\mid x)}$ —
-that is, it increases the preferred completion's probability *relative to
-the reference model's* probability for it, and decreases the dispreferred
-completion's probability relative to the reference model's probability for
-it. It does not directly require $\pi_\theta(y^+\mid x) >
-\pi_\theta(y^-\mid x)$ in absolute terms; what matters is the *ratio to
-$\pi_{\mathrm{ref}}$*, which is precisely what keeps the objective tied to
-the reference model's own sense of plausible continuations rather than
-rewarding $y^+$ merely for having high raw probability under some
-degenerate policy.
+that is, it widens the *margin* between the two log-ratios. It constrains
+only that difference, not either term on its own: the preferred
+completion's log-ratio can fall, as long as the dispreferred one falls
+faster. This is not a corner case. Razin et al. [@razin2025unintentional]
+find that the preferred response's likelihood often *decreases* during DPO
+training ("likelihood displacement"), sometimes shifting probability mass
+to responses with the *opposite* meaning: training a model to prefer "No"
+over "Never" can raise the probability of "Yes". Nor does the loss
+require $\pi_\theta(y^+\mid x) > \pi_\theta(y^-\mid x)$ in absolute terms;
+what it measures is each completion's *ratio to $\pi_{\mathrm{ref}}$*, which
+is what keeps the objective tied to the reference model's own sense of
+plausible continuations.
 
 ## Behavior and edge cases
 
@@ -282,13 +285,18 @@ reasonable initialization at $\pi_\theta = \pi_{\mathrm{ref}}$.
 DPO inherits Chapter 11's Bradley–Terry assumption wholesale: preference
 probability is assumed to depend only on the reward gap, which can be
 violated by inconsistent or non-transitive human preferences. It also
-inherits a subtler issue from the derivation itself: the closed-form
-$\pi^\star$ in Step 1 is exact only for the *true* reward function and
-exact KL-regularized optimization; DPO substitutes the model's own implicit
-reward and optimizes it directly by gradient descent on a finite preference
-dataset, which is a different (and in practice, generally more stable, but
-not provably identical) procedure from running the two-stage RLHF pipeline
-to convergence. And, as with the reward model it replaces, DPO is only as
+inherits a subtler issue from the derivation itself. In the infinite-data
+limit, DPO and the two-stage RLHF pipeline share the same optimum, the
+$\pi^\star$ of Step 1. On a *finite* preference dataset they are different
+estimators, and DPO's can overfit: Azar et al. [@azar2023general] point out
+that when every comparison of a given pair goes the same way, the empirical
+preference is deterministic and the loss keeps rewarding a larger margin
+without bound, pushing $\pi_\theta$ away from $\pi^\star$ rather than toward
+it; their IPO objective replaces the log-sigmoid with a bounded (squared)
+target to stop this. "Same target" is not "same estimator". Likelihood
+displacement (see Interpretation) is a second finite-data effect. The
+variants built to address both are covered in [rl-for-llms](https://ioannisantoniadis.github.io/rl-for-llms/chapters/07-direct-preference-methods.html),
+as of 2026. And, as with the reward model it replaces, DPO is only as
 good as the preference data it's trained on — it has no separate mechanism
 for detecting when human raters themselves disagree, are inconsistent, or
 are rewarding a superficial trait (e.g. verbosity) rather than the intended

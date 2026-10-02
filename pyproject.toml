@@ -1,0 +1,27 @@
+[project]
+name = "loss-functions-lab"
+version = "0.1.0"
+description = "Loss functions and ML objectives, derived from first principles: figure scripts and numerical checks of the book's claims."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.13",
+    "matplotlib>=3.8",
+    "networkx>=3.3",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110

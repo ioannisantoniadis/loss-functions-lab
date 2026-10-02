@@ -84,6 +84,14 @@ scripts/figures/          one small script per figure — real computed
 CONVENTIONS.md            the authoring template every chapter follows
 ```
 
+## Checks
+
+```bash
+uv sync
+uv run pytest      # numerical checks of the claims each chapter derives (tests/test_claims.py)
+uv run python scripts/figures/fig_gaussian_to_mse.py   # regenerate one figure
+```
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

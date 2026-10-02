@@ -192,13 +192,17 @@ example).
 
 Separately from this reduction, InfoNCE has a second, more delicate
 theoretical property: van den Oord et al. [@oord2018representation] show
-that minimizing it lower-bounds the mutual information between the two
-halves of a positive pair, $I(x; x^+)$, with the bound tightening as $K$
-grows. This is a real result, but it is a *different* and weaker claim than
-the exact identity above — the categorical cross-entropy reduction is exact
-for any $K$, while the mutual-information reading is an asymptotic bound
-that depends on assumptions about the similarity function and the sampling
-distribution of negatives. Treat the cross-entropy reduction as the loss's
+that $I(x; x^+) \geq \log(K+1) - \mathcal{L}_{\mathrm{InfoNCE}}$, so
+*minimizing* the loss *maximizes* a lower bound on the mutual information
+between the two halves of a positive pair, a bound they note "becomes
+tighter as N becomes larger" (their $N$ is this chapter's $K+1$). Because
+the loss is never negative, the bound can also never exceed $\log(K+1)$:
+with $K$ negatives, InfoNCE cannot certify more than $\log(K+1)$ nats of
+mutual information, however much the representations actually share. This
+is a real result, but it is a *different* and weaker claim than the exact
+identity above: the categorical cross-entropy reduction is exact for any
+$K$, while the mutual-information reading is a bound whose tightness
+depends on $K$ (and, in the paper's derivation, on an approximation). Treat the cross-entropy reduction as the loss's
 actual definition, and the mutual-information bound as a noteworthy
 property of it, not as a second derivation of the same formula.
 
